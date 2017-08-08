@@ -1,0 +1,59 @@
+function Column(id, name) {
+		var self = this;
+		this.id = id;
+		this.name = name || 'No name given';
+		this.element = createColumn();
+
+		function createColumn() {
+			var $column = $('<div>').addClass('column col-xs-3 col-xs-offset-1');
+			var $columnTitle = $('<h2>').addClass('column-title').text(self.name);
+			var $columnCardList = $('<ul>').addClass('column-card-list');
+			var $columnDelete = $('<button>').addClass('btn-delete btn-danger').text('x');
+			var $columnAddCard = $('<button>').addClass('add-card btn btn-primary').text('Add a card');
+		// ADDING EVENTS
+
+			$columnDelete.click(function() {
+				self.deleteColumn();
+			});
+
+			$columnAddCard.click(function(event) {
+				var cardName = prompt('Enter the name of the card');
+				$.ajax({
+					url: baseUrl + '/card',
+					method: 'POST',
+					data: {
+						name: cardName,
+						bootcamp_kanban_column_id: self.id
+					},
+					success: function(response) {
+						var card = new Card(response.id, cardName);
+						self.addCard(card);
+					}
+				});
+			});
+		// CONSTRUCTION COLUMN ELEMENT
+
+			$column.append($columnTitle)
+					.append($columnDelete)
+					.append($columnAddCard)
+					.append($columnCardList);
+		// RETURN OF CREATED COLUMN
+			return $column;
+		}
+	}
+
+	Column.prototype = {
+		addCard: function(card) {
+			this.element.children('ul').append(card.element);
+		},
+		deleteColumn: function() {
+			var self = this;
+			$.ajax ({
+				url: baseUrl + '/column/' + self.id,
+				method: 'DELETE',
+				success: function(response) {
+					self.element.remove();
+				}
+			});
+		}
+	};
